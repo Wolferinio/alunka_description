@@ -1,0 +1,280 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <xacro:property name="wheel_radius" value="0.16" /> 
+    <xacro:property name="wheel_lenght" value="0.14" />
+    <xacro:property name="hinge_radius" value="0.04" />
+    <xacro:property name="hinge_lenght" value="0.1" />
+
+    <xacro:property name="mobile_l" value="1.8" />
+    <xacro:property name="mobile_w" value="0.85" />
+    <xacro:property name="mobile_h" value="0.15" />
+    <xacro:property name="mobile_xyz" value="0 0 0" /> 
+    <xacro:property name="wheel_rpy" value="${pi / 2.0} 0 0" />
+    <xacro:property name="hinge_rpy" value="0 0 0" />
+
+    <xacro:property name="leg_l" value="0.15" />
+    <xacro:property name="leg_w" value="0.08" />
+    <xacro:property name="leg_h" value="0.7" />
+    <xacro:property name="leg_angle" value="0.5" /> 
+    <xacro:property name="leg_visual_adding" value="0.1" />
+    <!-- <xacro:property name="leg_xyz" value="${leg_h*sin(leg_angle)/2} 0 ${-leg_h*cos(leg_angle)/2}" /> -->
+    <!-- <xacro:property name="leg_rpy" value="0 0 0" />  -->
+
+
+    <!-- @@@@@@@@@@@@@@@@          Functions                @@@@@@@@@@@@@@@@ -->
+
+    <xacro:macro name="create_wheel_link" params="prefix">
+
+    <link name="${prefix}_wheel_link">
+        <visual>
+            <geometry>
+                <cylinder radius="${wheel_radius}" length="${wheel_lenght}" />
+            </geometry>
+            <origin xyz="0 0 0" rpy="${wheel_rpy}" />
+            <material name="blue" />
+        </visual>
+        <collision>
+            <geometry>
+                <cylinder radius="${wheel_radius}" length="${wheel_lenght}" />
+            </geometry>
+            <origin xyz="0 0 0" rpy="${wheel_rpy}" />
+        </collision>
+        <xacro:cylinder_inertia mass="3.0" l="${2*wheel_lenght}" r="${2*wheel_radius}" xyz="0 0 0" rpy="${wheel_rpy}" />
+    </link>
+
+    </xacro:macro> 
+
+    <!-- hinge -->
+
+    <xacro:macro name="create_hinge_link" params="prefix">
+
+    <link name="${prefix}_hinge_link">
+        <visual>
+            <geometry>
+                <cylinder radius="${hinge_radius}" length="${hinge_lenght}" />
+            </geometry>
+            <origin xyz="0 0 ${hinge_lenght/2}" rpy="${hinge_rpy}" />
+            <material name="red" />
+        </visual>
+        <collision>
+            <geometry>
+                <cylinder radius="${hinge_radius}" length="${hinge_lenght}" />
+            </geometry>
+            <origin xyz="0 0 ${hinge_lenght/2}" rpy="${hinge_rpy}" />
+        </collision>
+        <xacro:cylinder_inertia mass="1.5" l="${2*hinge_lenght}" r="${2*hinge_radius}" xyz="0 0 ${hinge_lenght/2}" rpy="${hinge_rpy}" />
+    </link>
+
+    </xacro:macro> 
+
+    <!-- leg link creation func -->
+
+    <xacro:macro name="create_leg_link" params="prefix xyz rpy">
+
+    <link name="${prefix}_leg_link">
+        <visual>
+            <geometry>
+                <box size="${leg_l} ${leg_w - 0.01} ${leg_h + leg_visual_adding}" />
+            </geometry>
+            <origin xyz="${xyz}" rpy="${rpy}" />
+            <material name="grey" />
+        </visual>
+        <collision>
+            <geometry>
+                <box size="${leg_l} ${leg_w} ${leg_h}" />
+            </geometry>
+            <origin xyz="${xyz}" rpy="${rpy}" />
+        </collision>
+        <xacro:box_inertia mass="1.5" l="${2*leg_l}" w="${2*leg_w}" h="${2*leg_h}" xyz="${xyz}" rpy="${rpy}" />
+    </link>
+
+    </xacro:macro> 
+
+    <!-- @@@@@@@@@@@@@@@@          Robot Creation                @@@@@@@@@@@@@@@@ -->
+    <!-- <dynamics damping="10.0" friction="10.0" /> that's actually a lot prettyh sure -->
+
+    <!-- Body -->
+
+    <link name="mobile_base_footprint" />
+
+    <link name="mobile_base_link"> <!-- Base link visual, collision and inertia exists in balance robot -->
+        <!-- <visual>
+            <geometry>
+                <box size="${mobile_l} ${mobile_w} ${mobile_h}" />
+            </geometry>
+            <origin xyz="${mobile_xyz}" rpy="0 0 0" />
+            <material name="green" />
+        </visual>
+        <collision>
+            <geometry>
+                <box size="${mobile_l} ${mobile_w} ${mobile_h}" />
+            </geometry>
+            <origin xyz="${mobile_xyz}" rpy="0 0 0" />
+        </collision>
+        <xacro:box_inertia mass="25.0" l="${2*mobile_l}" w="${2*mobile_w}" h="${2*mobile_h}" xyz="${mobile_xyz}" rpy="0 0 0" /> -->
+    </link>
+
+    <joint name="footprint_joint" type="fixed">
+        <parent link="mobile_base_footprint" />
+        <child link="mobile_base_link" />
+        <origin xyz="0 0 ${(mobile_h / 2) + wheel_radius + hinge_lenght + leg_h*cos(leg_angle)}" rpy="0 0 0" /> 
+    </joint>
+
+    <!-- legs creations -->
+
+    <xacro:create_leg_link prefix="rear" xyz="${-(leg_h*sin(leg_angle)/2)} 0 ${-leg_h*cos(leg_angle)/2}" rpy="0 ${leg_angle} 0" />
+
+    <joint name="rear_leg_joint" type="fixed">
+        <parent link="mobile_base_link" />
+        <child link="rear_leg_link" />
+        <origin xyz="${-(mobile_l / 2)} 0 ${-(mobile_h / 2)}" rpy="0 0 0" />
+    </joint>
+
+    <xacro:create_leg_link prefix="left" xyz="${leg_h*sin(leg_angle)/2} 0 ${-leg_h*cos(leg_angle)/2}" rpy="0 ${-leg_angle} 0" />
+
+    <joint name="left_leg_joint" type="fixed">
+        <parent link="mobile_base_link" />
+        <child link="left_leg_link" />
+        <origin xyz="${(mobile_l / 2)} ${mobile_w/2 - leg_w/2} ${-(mobile_h / 2)}" rpy="0 0 0" />
+    </joint>
+
+    <xacro:create_leg_link prefix="right" xyz="${leg_h*sin(leg_angle)/2} 0 ${-leg_h*cos(leg_angle)/2}" rpy="0 ${-leg_angle} 0" />
+
+    <joint name="right_leg_joint" type="fixed">
+        <parent link="mobile_base_link" />
+        <child link="right_leg_link" />
+        <origin xyz="${(mobile_l / 2)} ${-mobile_w/2 + leg_w/2} ${-(mobile_h / 2)}" rpy="0 0 0" />
+    </joint>
+
+    <!-- Hinges creation -->
+
+    <xacro:create_hinge_link prefix="rear" />
+
+    <joint name="rear_hinge_joint" type="continuous">
+        <parent link="rear_leg_link" /> 
+        <child link="rear_hinge_link" /> 
+        <origin xyz="${-(leg_h*sin(leg_angle))} 0 ${-leg_h*cos(leg_angle) - hinge_lenght}" rpy="0 0 0" />
+        <axis xyz="0 0 1" />
+    </joint>
+
+    <xacro:create_hinge_link prefix="left" />
+
+    <joint name="left_hinge_joint" type="revolute">
+        <parent link="left_leg_link" /> 
+        <child link="left_hinge_link" /> 
+        <origin xyz="${leg_h*sin(leg_angle)} 0 ${-leg_h*cos(leg_angle) - hinge_lenght}" rpy="0 0 0" />
+        <axis xyz="0 0 1" />
+        <limit lower="-0.6458" upper="0.6458" effort="100.0" velocity="100.0" />  <!-- values (lower & upper) taken from gazebo plugin for ackerman drive -->
+    </joint> <!-- might want to change the limit in order to be able to make a rotation in place -->
+
+    <xacro:create_hinge_link prefix="right" />
+
+    <joint name="right_hinge_joint" type="revolute">
+        <parent link="right_leg_link" /> 
+        <child link="right_hinge_link" /> 
+        <origin xyz="${leg_h*sin(leg_angle)} 0 ${-leg_h*cos(leg_angle) - hinge_lenght}" rpy="0 0 0" />
+        <axis xyz="0 0 1" />
+        <limit lower="-0.6458" upper="0.6458" effort="100.0" velocity="100.0" />  <!-- values (lower & upper) taken from gazebo plugin for ackerman drive -->
+    </joint>
+
+    <!-- Wheels creation -->
+
+    <xacro:create_wheel_link prefix="rear" />
+
+    <joint name="rear_wheel_joint" type="continuous">
+        <parent link="rear_hinge_link" />
+        <child link="rear_wheel_link" />
+        <origin xyz="${-(hinge_radius + wheel_radius)} 0 0" rpy="0 0 0" />
+        <axis xyz="0 1 0" />
+    </joint>
+
+    <xacro:create_wheel_link prefix="left" />
+
+    <joint name="left_wheel_joint" type="continuous">
+        <parent link="left_hinge_link" />
+        <child link="left_wheel_link" />
+        <origin xyz="0 0 0" rpy="0 0 0" /> <!-- xyz="${-(hinge_radius + wheel_radius)} 0 0 " -->
+        <axis xyz="0 1 0" />
+    </joint>
+
+    <xacro:create_wheel_link prefix="right" />
+
+    <joint name="right_wheel_joint" type="continuous">
+        <parent link="right_hinge_link" />
+        <child link="right_wheel_link" />
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <axis xyz="0 1 0" />
+    </joint>    
+
+    <!-- <xacro:create_wheel_link prefix="fake_rear" />
+
+    <joint name="fake_rear_wheel_joint" type="continuous">
+        <parent link="rear_hinge_link" />
+        <child link="fake_rear_wheel_link" />
+        <origin xyz="${-(hinge_radius + wheel_radius)} 0 0" rpy="0 0 0" />
+        <axis xyz="0 1 0" />
+    </joint> -->
+
+    <!-- camera -->
+
+    <!-- <link name="camera_link">
+        <visual>
+            <geometry>
+                <box size="${camera_l} ${camera_w} ${camera_h}" />
+            </geometry>
+            <origin xyz="${-(camera_l / 2.0)} 0 0" rpy="0 0 0" />
+            <material name="red" />
+        </visual>
+        <collision>
+            <geometry>
+                <box size="${camera_l} ${camera_w} ${camera_h}" />
+            </geometry>
+            <origin xyz="${-(camera_l / 2.0)} 0 0" rpy="0 0 0" />
+        </collision>
+        <xacro:box_inertia mass="0.1" l="${camera_l}" w="${camera_w}" h="${camera_h}" xyz="0 0 0" rpy="0 0 0" />
+    </link>
+
+    <joint name="base_camera_joint" type="fixed">
+        <parent link="base_link" />
+        <child link="camera_link" />
+        <origin xyz="${(mobile_l) / 2.0 + camera_l} 0 ${(mobile_h / 2.0) - (camera_h / 2.0)}" rpy="0 0 0" />
+    </joint> -->
+
+    <!--               camera for sensors                -->
+
+    <!-- <link name="camera_link_optical" />
+
+    <joint name="camera_optical_joint" type="fixed">
+    
+    <origin xyz="0 0 0" rpy="${-pi/2} 0 ${-pi/2}"/>
+    <parent link="camera_link"/>
+    <child link="camera_link_optical"/>
+    </joint> --> <!-- these values have to be these values otherwise the gazebo camera
+        image won't be aligned properly with the frame it is supposedly
+        originating from -->
+
+    <!--   Lidar        -->
+   
+    <!-- <link name="lidar_link">
+        <visual>
+            <geometry>
+                <cylinder radius="${lidar_radius}" length="${lidar_h}" />
+            </geometry>
+            <material name="black" />
+        </visual>
+        <collision>
+            <geometry>
+                <box radius="${lidar_radius}" length="${lidar_h}" />
+            </geometry>
+        </collision>
+        <xacro:wheel_inertia mass="0.1" l="${2*lidar_h}" r="${2*lidar_radius}" xyz="0 0 0" rpy="0 0 0" />
+    </link>
+
+    <joint name="base_lidar_joint" type="fixed">
+        <parent link="base_link" />
+        <child link="lidar_link" />
+        <origin xyz="${mobile_l / 4.0} 0 ${(mobile_h / 2.0) + (lidar_h / 2.0)}" rpy="0 0 0" />
+    </joint> -->
+
+</robot>

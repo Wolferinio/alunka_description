@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+   
+    <link name="platform_link">
+        <visual>
+            <geometry>
+                <box size="${base_lenght} ${base_width} ${base_height / 4.0}" />
+            </geometry>
+            <origin xyz="${-base_lenght/2} 0 0" rpy="0 0 0" />
+            <material name="blue" />
+        </visual>
+        <collision>
+            <geometry>
+                <box size="${base_lenght} ${base_width} ${base_height / 4.0}" />
+            </geometry>
+            <origin xyz="${-base_lenght/2} 0 0" rpy="0 0 0" />
+        </collision>
+        <!-- <self_collision>true</self_collision> -->
+        <xacro:box_inertia mass="25.0" l="${2*base_lenght}" w="${2*base_width}" h="${2*(base_height / 4.0)}" xyz="${-base_lenght/2} 0 0" rpy="0 0 0" />
+    </link>
+    
+    <joint name="platform_joint" type="revolute">
+        <parent link="front_small_cylinder_link"/>
+        <child link="platform_link"/>
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <axis xyz="0 1 0" />
+        <limit lower="-1.57" upper="1.57" effort="0.5293" velocity="6.159937255" />
+        <mimic joint="front_prismatic_joint" multiplier="-0.5" offset="0" />
+    </joint>
+
+
+</robot>
