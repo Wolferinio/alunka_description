@@ -4,7 +4,7 @@
     <link name="platform_link">
         <visual>
             <geometry>
-                <box size="${base_lenght} ${base_width} ${base_height / 4.0}" />
+                <box size="${base_lenght + 8} ${base_width+ 8} ${base_height / 4.0+ 8}" />
             </geometry>
             <origin xyz="${-base_lenght/2} 0 0" rpy="0 0 0" />
             <material name="blue" />
