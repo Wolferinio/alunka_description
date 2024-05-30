@@ -2,7 +2,7 @@
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
 
     <xacro:property name="cylinder_radius" value="0.03" /> 
-    <xacro:property name="cylinder_lenght" value="0.25" />
+    <xacro:property name="cylinder_lenght" value="0.3" />
     <xacro:property name="small_cylinder_radius" value="0.02" />
     <xacro:property name="small_cylinder_lenght" value="${cylinder_lenght}" />
 
